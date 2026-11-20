@@ -343,9 +343,10 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"
 const $=id=>document.getElementById(id);
 const now=new Date(), MI=(y,m)=>y*12+m-1, cur=MI(now.getFullYear(),now.getMonth()+1);
 const iso=d=>d.getFullYear()+"-"+P(d.getMonth()+1)+"-"+P(d.getDate());
+const t12=hm=>{if(!hm||hm.indexOf(":")<0)return hm;const[h,m]=hm.split(":").map(Number);return (h%12||12)+":"+String(m).padStart(2,"0")+" "+(h<12?"AM":"PM")};
 const stamp=()=>{const d=new Date();return iso(d)+"T"+P(d.getHours())+":"+P(d.getMinutes())};
 const dshow=s=>{const[a,b,c]=s.split("-");return `<bdi dir="ltr">${c}/${b}/${a}</bdi>`};
-const shownAt=s=>{const[a,b,c]=s.slice(0,10).split("-");return `<bdi dir="ltr">${c}/${b}/${a} · ${s.slice(11)}</bdi>`};
+const shownAt=s=>{const[a,b,c]=s.slice(0,10).split("-");return `<bdi dir="ltr">${c}/${b}/${a} · ${t12(s.slice(11))}</bdi>`};
 const mname=m=>D(P(m%12+1))+" / "+D(Math.floor(m/12));
 const tmo=s=>MI(+s.slice(0,4),+s.slice(5,7));
 
@@ -390,7 +391,7 @@ function renderP(){
   $("prPay").hidden=!(all.length&&n===all.length);
   const q=$("q").value.trim().toLowerCase();
   const L=all.filter(s=>(!gf||s.grade===gf)&&(!q||s.name.toLowerCase().includes(q)));
-  const dt=p=>p?[p.slice(0,10).split("-").reverse().join("/"),p.slice(11)]:["—","—"];
+  const dt=p=>p?[p.slice(0,10).split("-").reverse().join("/"),t12(p.slice(11))]:["—","—"];
   $("pl").innerHTML=`<tr><th class="c1">ژ</th><th class="c2">ناوی قوتابی</th><th>پۆل</th><th>کرێی مانگانە (د.ع)</th><th>دۆخی پارە</th><th>بەروار</th><th>کاتژمێر</th></tr>`+
    (L.length?L.map((s,i)=>{const p=S.pay[s.id+"_"+vm],[d,t]=dt(p);return `<tr><td class="c1">${D(i+1)}</td><td class="c2"><b>${esc(s.name)}</b></td><td>${D(s.grade)}</td><td>${N(s.fee)}</td><td>${sb(p,`data-m="${s.id}" data-mm="${vm}"`)}</td><td dir="ltr">${d}</td><td dir="ltr">${t}</td></tr>`}).join(""):`<tr><td colspan="7" class="empty">هیچ قوتابییەک نەدۆزرایەوە</td></tr>`);
 }
@@ -457,7 +458,7 @@ function doPrint(k){
   let h;
   if(k==="pay"){
     const all=S.students.filter(s=>s.start<=vm);
-    h=`<h2>پارەدانی مانگانەی قوتابیان · مانگی ${mname(vm)}</h2>`+tbl(["#","ناوی قوتابی","قوتابخانە","پۆل","کرێی مانگانە (د.ع)","دۆخی پارە","بەروار","کاتژمێر"],all.map((s,i)=>{const p=S.pay[s.id+"_"+vm];return [i+1,esc(s.name),esc(s.school||"—"),s.grade,N(s.fee),p?"دراوە":"نەدراوە",p?`<bdi dir="ltr">${p.slice(0,10).split("-").reverse().join("/")}</bdi>`:"—",p?`<bdi dir="ltr">${p.slice(11)}</bdi>`:"—"]}))+`<p>کۆی وەرگیراو: ${F(sum(all.filter(s=>S.pay[s.id+"_"+vm]),s=>s.fee))}</p>`;
+    h=`<h2>پارەدانی مانگانەی قوتابیان · مانگی ${mname(vm)}</h2>`+tbl(["#","ناوی قوتابی","قوتابخانە","پۆل","کرێی مانگانە (د.ع)","دۆخی پارە","بەروار","کاتژمێر"],all.map((s,i)=>{const p=S.pay[s.id+"_"+vm];return [i+1,esc(s.name),esc(s.school||"—"),s.grade,N(s.fee),p?"دراوە":"نەدراوە",p?`<bdi dir="ltr">${p.slice(0,10).split("-").reverse().join("/")}</bdi>`:"—",p?`<bdi dir="ltr">${t12(p.slice(11))}</bdi>`:"—"]}))+`<p>کۆی وەرگیراو: ${F(sum(all.filter(s=>S.pay[s.id+"_"+vm]),s=>s.fee))}</p>`;
   }else{
     const c=$("rep").cloneNode(true);c.querySelectorAll("[data-pr]").forEach(x=>x.remove());
     h="<h2>ڕاپۆرتی پارەدانی قوتابیان</h2>"+c.innerHTML;
@@ -506,7 +507,7 @@ function xlText(){
   const rows=[];
   rows.push(["ژ","ناوی قوتابی","قوتابخانە","پۆل","کرێی مانگانە (د.ع)","مانگ","دۆخی پارە","بەروار","کاتژمێر"].join("\t"));
   S.students.forEach((st,i)=>{for(let m=st.start;m<=cur;m++){const p=S.pay[st.id+"_"+m];
-    rows.push([i+1,q(st.name),q(st.school||""),st.grade,st.fee,(m%12+1)+"/"+Math.floor(m/12),p?"دراوە":"نەدراوە",p?p.slice(0,10):"",p?p.slice(11):""].join("\t"))}});
+    rows.push([i+1,q(st.name),q(st.school||""),st.grade,st.fee,(m%12+1)+"/"+Math.floor(m/12),p?"دراوە":"نەدراوە",p?p.slice(0,10):"",p?t12(p.slice(11)):""].join("\t"))}});
   rows.push("");rows.push(["گەشت","بۆ بەڕێز","لە","بۆ","کرێ (د.ع)","دۆخی پارە","بەروار"].join("\t"));
   S.trips.forEach(t=>rows.push(["",q(t.name),q(t.from),q(t.to),t.fare,t.paid?"دراوە":"نەدراوە",t.date].join("\t")));
   rows.push("");rows.push(["سەرف","بڕ (د.ع)","بەروار"].join("\t"));
@@ -596,7 +597,7 @@ document.body.addEventListener("click",e=>{
     save();render();
   }
 });
-$("clock").textContent=P(now.getDate())+"/"+P(now.getMonth()+1)+"/"+now.getFullYear();
+const tickC=()=>{const now=new Date();$("clock").textContent=P(now.getDate())+"/"+P(now.getMonth()+1)+"/"+now.getFullYear()+" · "+t12(P(now.getHours())+":"+P(now.getMinutes()))};tickC();setInterval(tickC,20000);
 $("rs").value=now.getFullYear()+"-"+P(now.getMonth()+1);$("q").oninput=renderP;
 go("pay");render();
 
@@ -609,7 +610,7 @@ setTheme(document.documentElement.dataset.theme||"blue");
 
 function tickLg(){
   const d=new Date(),P2=n=>String(n).padStart(2,"0");
-  $("lgClk").textContent=P2(d.getHours())+":"+P2(d.getMinutes());
+  const h=d.getHours()%12||12;$("lgClk").innerHTML=h+":"+P2(d.getMinutes())+'<small style="font-size:.32em;margin-inline-start:8px;opacity:.75;letter-spacing:1px">'+(d.getHours()<12?"AM":"PM")+"</small>";
   $("lgDt").textContent=P2(d.getDate())+"/"+P2(d.getMonth()+1)+"/"+d.getFullYear();
 }
 tickLg();setInterval(()=>{if(!$("lg").hidden)tickLg()},1000);
@@ -622,7 +623,7 @@ function showLogin(){
   $("lgF").hidden=true;$("lgE").textContent="";$("lp").value="";
   setTimeout(()=>$("lp").focus(),50);
 }
-function unlock(){document.body.classList.remove("locked");$("lg").hidden=true}
+function unlock(){document.body.classList.remove("locked");$("lg").hidden=true;go("dash");window.scrollTo(0,0)}
 $("lgB").onclick=async()=>{
   const p=$("lp").value;
   if(!p){$("lgE").textContent="پاسۆرد بنووسە";return}
