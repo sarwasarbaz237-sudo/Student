@@ -221,6 +221,7 @@ header{background:none!important;border-radius:0!important;box-shadow:none!impor
   <button class="tab" role="tab" data-tab="debt">قەرز <span class="bd" id="bd">0</span></button>
   <button class="tab" role="tab" data-tab="exp">سەرف</button>
   <button class="tab" role="tab" data-tab="rep">ڕاپۆرت</button>
+  <button class="tab" role="tab" data-tab="stu">خشتەی قوتابیان</button>
   <button class="tab" role="tab" data-tab="sys">ڕێکخستن</button>
 </div>
 
@@ -230,7 +231,7 @@ header{background:none!important;border-radius:0!important;box-shadow:none!impor
   
   <div class="card">
     <h3>تۆمارکردنی قوتابی</h3>
-    <label>ساڵی خوێندن (بۆ هەموو قوتابییەکان)<input id="ry" type="text" inputmode="numeric" placeholder="2026-2027" autocomplete="off"></label>
+    
     <label>ناو<input id="rn" type="text" autocomplete="off"></label>
     <label>قوتابخانە<input id="rsch" type="text" autocomplete="off"></label>
     <label>پۆل<div class="seg" id="rg"></div></label>
@@ -286,6 +287,18 @@ header{background:none!important;border-radius:0!important;box-shadow:none!impor
 
 <section id="sys" hidden>
   <div class="card">
+    <h3>ناوی قوتابخانە و ساڵی خوێندن</h3>
+    <p class="hint" style="margin:0 0 12px;padding:0">ناوی قوتابخانە لە فۆرمی چوونەژوورەوە و سەرەوەی ئەپەکە و لە تۆمارکردنی قوتابی دیار دەبێت.</p>
+    <label>ناوی قوتابخانە<input id="sn" type="text" autocomplete="off" placeholder="بۆ نموونە: قوتابخانەی ..."></label>
+    <label>ساڵی خوێندن<input id="ry" type="text" inputmode="numeric" placeholder="2026-2027" autocomplete="off"></label>
+    <button class="add" id="sv" style="width:100%">پاشەکەوتکردن</button>
+  </div>
+  <div class="card">
+    <h3>Face ID</h3>
+    <p class="hint" style="margin:0 0 12px;padding:0">دوای چالاککردن، لەم ئامێرە ئەپەکە بە Face ID دەکرێتەوە و پێویست ناکات هەر جارێک پاسۆرد بنووسیت.</p>
+    <button class="add" id="fidB" style="width:100%"></button>
+  </div>
+  <div class="card">
     <h3>هاوردە بۆ ئیکسڵ</h3>
     <p class="hint" style="margin:0 0 12px;padding:0">هەموو داتاکان (قوتابی، پارەدان، گەشت، سەرف) کۆپی دەکات. دواتر لە Excel کلیک لە خانەی A1 بکە و Paste بکە.</p>
     <button class="add" id="xl" style="width:100%">📊 کۆپیکردن بۆ ئیکسڵ</button>
@@ -301,6 +314,14 @@ header{background:none!important;border-radius:0!important;box-shadow:none!impor
     <button class="dng" id="wipe">🗑 سڕینەوەی هەموو داتا</button>
   </div>
   <textarea id="txt" rows="6" hidden></textarea>
+</section>
+<section id="stu" hidden>
+  <div class="card">
+    <input id="stq" type="search" placeholder="گەڕان بە ناو یان قوتابخانە..." autocomplete="off" style="margin-bottom:10px">
+    <div class="seg" id="stg"></div>
+  </div>
+  <div class="tools"><b id="sth"></b></div>
+  <div class="card" style="padding:6px"><div class="tw"><table class="tbl pl" id="stt"></table></div></div>
 </section>
 <section id="rep" hidden></section>
 
@@ -318,6 +339,7 @@ header{background:none!important;border-radius:0!important;box-shadow:none!impor
     <label>پاسۆرد<div class="pw"><input id="lp" type="password" autocomplete="current-password"><button type="button" data-sp="1" aria-label="پیشاندانی پاسۆرد">👁</button></div></label>
     <div class="err" id="lgE"></div>
     <button class="add" id="lgB" style="width:100%"></button>
+    <button class="lk" id="lgPw" hidden>بە پاسۆرد بچۆ ژوورەوە</button>
     <button class="lk" id="lgF" hidden>پاسۆردم لەبیر چووە (هەموو داتا دەسڕێتەوە)</button>
     <p class="note">ئەم داخلبوونە تەنها لەسەر ئەم ئامێرە و وێبگەڕەیە</p>
   </div>
@@ -350,7 +372,7 @@ const shownAt=s=>{const[a,b,c]=s.slice(0,10).split("-");return `<bdi dir="ltr">$
 const mname=m=>D(P(m%12+1))+" / "+D(Math.floor(m/12));
 const tmo=s=>MI(+s.slice(0,4),+s.slice(5,7));
 
-let KEY="qutabi_pay_v1";let S=null;
+let faceMode=false,justLogged=false,sgf=0;let KEY="qutabi_pay_v1";let S=null;
 
 if(!S)S={seq:0,students:[],pay:{},trips:[],exp:[],grades:[10,11,12],year:"2026-2027"};
 function pushState(){
@@ -407,7 +429,7 @@ function editS(id){
   ()=>{S.students=S.students.filter(x=>x.id!=id);Object.keys(S.pay).forEach(k=>{if(k.split("_")[0]==id)delete S.pay[k]});toast("قوتابییەکە سڕایەوە")});
 }
 function renderR(){
-  $("ry").value=S.year||"";$("yrTxt").textContent=S.year||"";
+  $("ry").value=S.year||"";$("yrTxt").textContent=S.year||"";$("sn").value=S.brand||"";{const r=$("rsch");if(!r.dataset.t)r.value=S.brand||""}
   $("rh").textContent="قوتابیانی تۆمارکراو ("+D(S.students.length)+")";
   $("rt").innerHTML=`<tr><th>ژ</th><th>ناوی قوتابی</th><th>قوتابخانە</th><th>پۆل</th><th>کرێی مانگانە (د.ع)</th><th>دەستکاری</th></tr>`+
    (S.students.length?S.students.map((s,i)=>`<tr><td>${D(i+1)}</td><td class="nm2"><b>${esc(s.name)}</b></td><td>${esc(s.school||"—")}</td><td>${D(s.grade)}</td><td>${N(s.fee)}</td><td><button class="ed" data-e="${s.id}">✎ دەستکاری</button></td></tr>`).join(""):`<tr><td colspan="6" class="empty">هێشتا هیچ قوتابییەک تۆمار نەکراوە</td></tr>`);
@@ -452,7 +474,7 @@ function renderGrades(){
   fillSeg("rg");fillSeg("dg");
   $("gf").innerHTML=`<button data-g="0">هەموو</button>`+gradesList().map(x=>`<button data-g="${x}">پۆلی ${x}</button>`).join("");
 }
-function render(){renderGrades();renderP();renderR();renderT();renderDebt();renderExp();renderDash();renderRep()}
+function render(){renderGrades();renderP();renderR();renderT();renderDebt();renderExp();renderDash();renderRep();renderStu()}
 
 function doPrint(k){
   let h;
@@ -494,7 +516,7 @@ function applyBrand(){let b={};try{b=JSON.parse(localStorage.getItem(BK))||{}}ca
   const sb=document.querySelector("header .sub");if(sb)sb.textContent=b.name||"پۆلی 10 · 11 · 12";}
 function syncBrand(){try{localStorage.setItem(BK,JSON.stringify({name:S.brand||"",year:S.year||""}))}catch(e){}applyBrand()}
 applyBrand();
-$("yrChip").onclick=()=>{$("bn").value=S.brand||"";$("by").value=S.year||"";$("bov").hidden=false;setTimeout(()=>$("bn").focus(),50)};
+$("yrChip").onclick=()=>{go("sys");window.scrollTo(0,0);setTimeout(()=>$("sn").focus(),60)};
 $("bc").onclick=()=>{$("bov").hidden=true};
 $("bs").onclick=()=>{const y=$("by").value.trim();if(!y){toast("ساڵی خوێندن بنووسە");return}S.year=y;S.brand=$("bn").value.trim();save();render();$("bov").hidden=true;toast("✓ پاشەکەوت کرا")};
 $("ry").onchange=()=>{const v=$("ry").value.trim();if(!v){toast("ساڵی خوێندن بنووسە");$("ry").value=S.year||"";return}S.year=v;save();render();toast("✓ ساڵی خوێندن پاشەکەوت کرا")};
@@ -550,7 +572,7 @@ $("addS").onclick=()=>{
   const name=$("rn").value.trim(),fee=+$("rf").value,g=+$("rg").querySelector(".on").dataset.v,ms=$("rs").value;
   if(!name||!fee){toast("تکایە ناو و کرێی مانگانە پڕبکەرەوە");return}
   S.students.push({id:++S.seq,name,school:$("rsch").value.trim(),grade:g,fee,start:ms?MI(+ms.slice(0,4),+ms.slice(5,7)):cur});
-  $("rn").value="";$("rsch").value="";save();render();toast("✓ تۆمارکرا · چووە ناو لیستی پارە وەرگرتن");
+  $("rn").value="";$("rsch").value=S.brand||"";delete $("rsch").dataset.t;save();render();toast("✓ تۆمارکرا · چووە ناو لیستی پارە وەرگرتن");
 };
 
 $("addT").onclick=()=>sheet("گەشت و بووک کردنی نوێ",[
@@ -569,9 +591,31 @@ $("addE").onclick=()=>sheet("سەرفی نوێ",[
   {k:"date",l:"بەروار",t:"date",v:iso(new Date()),req:1}
 ],v=>{S.exp.push({id:++S.seq,title:v.title,amt:+v.amt,date:v.date});toast("✓ سەرف تۆمارکرا")});
 
+
+$("rsch").addEventListener("input",()=>{$("rsch").dataset.t="1"});
+$("sv").onclick=()=>{const y=$("ry").value.trim();if(!y){toast("ساڵی خوێندن بنووسە");return}S.year=y;S.brand=$("sn").value.trim();save();render();toast("✓ پاشەکەوت کرا")};
+function renderStu(){
+  const sig=gradesList().join(",");
+  if($("stg").dataset.sig!==sig){$("stg").dataset.sig=sig;if(!gradesList().includes(sgf))sgf=0;
+    $("stg").innerHTML=[[0,"هەموو"],...gradesList().map(g=>[g,"پۆلی "+D(g)])].map(x=>`<button data-v="${x[0]}" class="${x[0]===sgf?"on":""}">${x[1]}</button>`).join("")}
+  const q=($("stq").value||"").trim().toLowerCase();
+  const cnt={},last={};
+  Object.keys(S.pay).forEach(k=>{const id=k.split("_")[0];cnt[id]=(cnt[id]||0)+1;const v=S.pay[k];if(!last[id]||v>last[id])last[id]=v});
+  const L=S.students.filter(s=>(!sgf||s.grade===sgf)&&(!q||s.name.toLowerCase().includes(q)||(s.school||"").toLowerCase().includes(q)));
+  let debtSum=0,feeSum=0;
+  const rows=L.map((s,i)=>{
+    const owed=s.start<=cur?Array.from({length:cur-s.start+1},(_,k)=>s.start+k).filter(m=>!S.pay[s.id+"_"+m]).length:0;
+    debtSum+=owed*s.fee;feeSum+=s.fee;
+    const th=s.start>cur?"—":(S.pay[s.id+"_"+cur]?'<span style="color:var(--ok,#2e9e82);font-weight:700">✓ دراوە</span>':'<span style="color:var(--bad,#e0527a);font-weight:700">نەدراوە</span>');
+    return `<tr><td>${D(i+1)}</td><td class="nm2"><b>${esc(s.name)}</b></td><td>${esc(s.school||"—")}</td><td>${D(s.grade)}</td><td>${N(s.fee)}</td><td>${mname(s.start)}</td><td>${D(cnt[s.id]||0)}</td><td>${D(owed)}</td><td>${owed?N(owed*s.fee):"—"}</td><td>${th}</td><td>${last[s.id]?shownAt(last[s.id]):"—"}</td><td><button class="ed" data-e="${s.id}">✎ دەستکاری</button></td></tr>`}).join("");
+  $("sth").textContent="قوتابیان ("+D(L.length)+") · کۆی کرێی مانگانە "+F(feeSum)+" · کۆی قەرز "+F(debtSum);
+  $("stt").innerHTML=`<tr><th>ژ</th><th>ناوی قوتابی</th><th>قوتابخانە</th><th>پۆل</th><th>کرێی مانگانە (د.ع)</th><th>مانگی دەستپێک</th><th>مانگی دراو</th><th>مانگی قەرز</th><th>کۆی قەرز (د.ع)</th><th>ئەم مانگە</th><th>دوایین پارەدان</th><th>دەستکاری</th></tr>`+(rows||`<tr><td colspan="12" class="empty">هیچ قوتابییەک نەدۆزرایەوە</td></tr>`);
+}
+$("stq").addEventListener("input",renderStu);
+$("stg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;sgf=+b.dataset.v;renderStu()});
 function go(x){
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.tab===x));
-  ["dash","reg","pay","trip","debt","exp","rep","sys"].forEach(id=>$(id).hidden=id!==x);
+  ["dash","reg","pay","trip","debt","exp","rep","stu","sys"].forEach(id=>$(id).hidden=id!==x);
 }
 document.body.addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;const d=b.dataset;
@@ -615,6 +659,7 @@ function tickLg(){
 }
 tickLg();setInterval(()=>{if(!$("lg").hidden)tickLg()},1000);
 function showLogin(){
+  faceMode=false;$("lgPw").hidden=true;
   document.body.classList.add("locked");$("lg").hidden=false;
   $("lgS").textContent="پاسۆردەکەت بنووسە بۆ چوونەژوورەوە";
   $("lgB").textContent="چوونەژوورەوە";
@@ -625,10 +670,11 @@ function showLogin(){
 }
 function unlock(){document.body.classList.remove("locked");$("lg").hidden=true;go("dash");window.scrollTo(0,0)}
 $("lgB").onclick=async()=>{
+  if(faceMode){doFace();return}
   const p=$("lp").value;
   if(!p){$("lgE").textContent="پاسۆرد بنووسە";return}
   $("lgB").disabled=true;
-  try{await signInWithEmailAndPassword(auth,EMAIL,p)}
+  justLogged=true;try{await signInWithEmailAndPassword(auth,EMAIL,p)}
   catch(e){
     $("lgE").textContent=(e.code==="auth/network-request-failed")?"بۆ یەکەم جار ئینتەرنێت پێویستە":"پاسۆرد هەڵەیە";
     $("lp").value="";
@@ -658,8 +704,32 @@ function startSync(){
   },()=>toast("هاوکاتکردن کار ناکات"));
 }
 let syncOn=false;
+
+const FK="qutabi_fid";
+const fidId=()=>{try{return localStorage.getItem(FK)}catch(e){return null}};
+const b64=b=>btoa(String.fromCharCode(...new Uint8Array(b)));
+const unb64=t=>Uint8Array.from(atob(t),c=>c.charCodeAt(0));
+const rnd=n=>crypto.getRandomValues(new Uint8Array(n));
+const fidOK=!!(window.PublicKeyCredential&&navigator.credentials&&window.isSecureContext);
+function renderFid(){const b=$("fidB");if(!fidOK){b.textContent="Face ID لەم وێبگەڕە پشتگیری ناکرێت";b.disabled=true;return}b.textContent=fidId()?"✕ ڕاگرتنی Face ID":"🔒 چالاککردنی Face ID"}
+$("fidB").onclick=async()=>{
+  if(fidId()){try{localStorage.removeItem(FK)}catch(e){}renderFid();toast("Face ID ڕاگیرا");return}
+  try{
+    const c=await navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:"Student"},user:{id:rnd(16),name:"qutabi",displayName:"Qutabi"},pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required"},timeout:60000}});
+    localStorage.setItem(FK,b64(c.rawId));renderFid();toast("✓ Face ID چالاک کرا");
+  }catch(e){toast("Face ID چالاک نەکرا")}
+};
+renderFid();
+async function doFace(){
+  try{
+    await navigator.credentials.get({publicKey:{challenge:rnd(32),allowCredentials:[{type:"public-key",id:unb64(fidId())}],userVerification:"required",timeout:60000}});
+    faceMode=false;unlock();if(!syncOn){syncOn=true;startSync()}
+  }catch(e){$("lgE").textContent="Face ID سەرکەوتوو نەبوو، دووبارە دوگمەکە بکە"}
+}
+function showFace(){showLogin();faceMode=true;$("lgS").textContent="بە Face ID بیکەرەوە";$("lp").closest("label").hidden=true;$("lgB").textContent="🔓 کردنەوە بە Face ID";$("lgPw").hidden=false;setTimeout(doFace,350)}
+$("lgPw").onclick=async()=>{faceMode=false;try{await signOut(auth)}catch(e){}showLogin()};
 onAuthStateChanged(auth,user=>{
-  if(user){unlock();if(!syncOn){syncOn=true;startSync()}}
+  if(user){if(fidId()&&fidOK&&!justLogged){showFace()}else{justLogged=false;unlock();if(!syncOn){syncOn=true;startSync()}}}
   else showLogin();
 });
 </script>
