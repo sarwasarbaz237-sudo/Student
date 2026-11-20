@@ -200,6 +200,7 @@ header{background:none!important;border-radius:0!important;box-shadow:none!impor
 .lgk{text-align:center;color:#fff;font-weight:800;font-size:17px;line-height:1.6;margin:0 0 6px;opacity:.95}
 .lgc .logo{display:none!important}
 .logo{display:none!important}
+label:has(#lu){display:block!important;position:absolute;left:-9999px;width:1px;height:1px;opacity:0;overflow:hidden}
 </style>
 </head>
 <body class="locked">
@@ -660,6 +661,7 @@ function tickLg(){
 }
 tickLg();setInterval(()=>{if(!$("lg").hidden)tickLg()},1000);
 function showLogin(){
+  $("lu").value=EMAIL;
   faceMode=false;$("lgPw").hidden=true;
   document.body.classList.add("locked");$("lg").hidden=false;
   $("lgS").textContent="پاسۆردەکەت بنووسە بۆ چوونەژوورەوە";
@@ -738,16 +740,6 @@ async function doFace(){
   }catch(e){justLogged=false;try{localStorage.removeItem(FP)}catch(x){}showLogin();$("lgE").textContent="پاسۆردەکە بنووسە"}
 }
 function showFace(){showLogin();faceMode=true;$("lgS").textContent="بە Face ID بیکەرەوە";$("lp").closest("label").hidden=true;$("lgB").textContent="🔓 کردنەوە بە Face ID";$("lgPw").hidden=false;setTimeout(doFace,350)}
-let fidBusy=false;
-$("lp").addEventListener("click",async()=>{
-  if(faceMode||fidBusy||!fidOK||!fidId()||!savedPw()||$("lp").value)return;
-  fidBusy=true;
-  try{
-    await navigator.credentials.get({publicKey:{challenge:rnd(32),allowCredentials:[{type:"public-key",id:unb64(fidId())}],userVerification:"required",timeout:60000}});
-    $("lp").value=savedPw();$("lp").blur();$("lgB").click();
-  }catch(e){}
-  finally{fidBusy=false}
-});
 $("lgPw").onclick=async()=>{faceMode=false;noFace=true;try{await signOut(auth)}catch(e){}showLogin()};
 onAuthStateChanged(auth,user=>{
   if(user){if(fidId()&&fidOK&&!justLogged){showFace()}else{justLogged=false;unlock();if(!syncOn){syncOn=true;startSync()}}}
