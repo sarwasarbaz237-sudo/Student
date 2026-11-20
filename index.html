@@ -296,6 +296,7 @@ header{background:none!important;border-radius:0!important;box-shadow:none!impor
   <div class="card">
     <h3>Face ID</h3>
     <p class="hint" style="margin:0 0 12px;padding:0">دوای چالاککردن، لەم ئامێرە ئەپەکە بە Face ID دەکرێتەوە و پێویست ناکات هەر جارێک پاسۆرد بنووسیت.</p>
+    <input id="fidP" type="password" placeholder="پاسۆردی ئەپەکە (بۆ چالاککردن)" autocomplete="current-password" style="margin-bottom:10px">
     <button class="add" id="fidB" style="width:100%"></button>
   </div>
   <div class="card">
@@ -372,7 +373,7 @@ const shownAt=s=>{const[a,b,c]=s.slice(0,10).split("-");return `<bdi dir="ltr">$
 const mname=m=>D(P(m%12+1))+" / "+D(Math.floor(m/12));
 const tmo=s=>MI(+s.slice(0,4),+s.slice(5,7));
 
-let faceMode=false,justLogged=false,sgf=0;let KEY="qutabi_pay_v1";let S=null;
+let faceMode=false,justLogged=false,noFace=false,sgf=0;let KEY="qutabi_pay_v1";let S=null;
 
 if(!S)S={seq:0,students:[],pay:{},trips:[],exp:[],grades:[10,11,12],year:"2026-2027"};
 function pushState(){
@@ -674,7 +675,7 @@ $("lgB").onclick=async()=>{
   const p=$("lp").value;
   if(!p){$("lgE").textContent="پاسۆرد بنووسە";return}
   $("lgB").disabled=true;
-  justLogged=true;try{await signInWithEmailAndPassword(auth,EMAIL,p)}
+  noFace=false;justLogged=true;try{await signInWithEmailAndPassword(auth,EMAIL,p);if(fidId()&&!savedPw()){try{localStorage.setItem(FP,encPw(p))}catch(e){}}}
   catch(e){
     $("lgE").textContent=(e.code==="auth/network-request-failed")?"بۆ یەکەم جار ئینتەرنێت پێویستە":"پاسۆرد هەڵەیە";
     $("lp").value="";
@@ -705,32 +706,42 @@ function startSync(){
 }
 let syncOn=false;
 
-const FK="qutabi_fid";
-const fidId=()=>{try{return localStorage.getItem(FK)}catch(e){return null}};
+const FK="qutabi_fid",FP="qutabi_fp";
+const lsg=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const fidId=()=>lsg(FK);
+const encPw=p=>btoa(unescape(encodeURIComponent(p)));
+const savedPw=()=>{const v=lsg(FP);if(!v)return null;try{return decodeURIComponent(escape(atob(v)))}catch(e){return null}};
 const b64=b=>btoa(String.fromCharCode(...new Uint8Array(b)));
 const unb64=t=>Uint8Array.from(atob(t),c=>c.charCodeAt(0));
 const rnd=n=>crypto.getRandomValues(new Uint8Array(n));
 const fidOK=!!(window.PublicKeyCredential&&navigator.credentials&&window.isSecureContext);
-function renderFid(){const b=$("fidB");if(!fidOK){b.textContent="Face ID لەم وێبگەڕە پشتگیری ناکرێت";b.disabled=true;return}b.textContent=fidId()?"✕ ڕاگرتنی Face ID":"🔒 چالاککردنی Face ID"}
+function renderFid(){const b=$("fidB"),on=!!fidId();$("fidP").hidden=on||!fidOK;if(!fidOK){b.textContent="Face ID لەم وێبگەڕە پشتگیری ناکرێت";b.disabled=true;return}b.textContent=on?"✕ ڕاگرتنی Face ID":"🔒 چالاککردنی Face ID"}
 $("fidB").onclick=async()=>{
-  if(fidId()){try{localStorage.removeItem(FK)}catch(e){}renderFid();toast("Face ID ڕاگیرا");return}
+  if(fidId()){try{localStorage.removeItem(FK);localStorage.removeItem(FP)}catch(e){}renderFid();toast("Face ID ڕاگیرا");return}
+  const p=$("fidP").value;
+  if(!p){toast("پاسۆردی ئەپەکە بنووسە");return}
+  try{justLogged=true;await signInWithEmailAndPassword(auth,EMAIL,p)}catch(e){justLogged=false;toast("پاسۆرد هەڵەیە");return}
   try{
     const c=await navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:"Student"},user:{id:rnd(16),name:"qutabi",displayName:"Qutabi"},pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required"},timeout:60000}});
-    localStorage.setItem(FK,b64(c.rawId));renderFid();toast("✓ Face ID چالاک کرا");
+    localStorage.setItem(FK,b64(c.rawId));localStorage.setItem(FP,encPw(p));$("fidP").value="";renderFid();toast("✓ Face ID چالاک کرا");
   }catch(e){toast("Face ID چالاک نەکرا")}
+  finally{justLogged=false}
 };
 renderFid();
 async function doFace(){
   try{
     await navigator.credentials.get({publicKey:{challenge:rnd(32),allowCredentials:[{type:"public-key",id:unb64(fidId())}],userVerification:"required",timeout:60000}});
+  }catch(e){$("lgE").textContent="Face ID سەرکەوتوو نەبوو، دووبارە دوگمەکە بکە";return}
+  try{
+    if(!auth.currentUser){const p=savedPw();if(!p)throw 0;justLogged=true;await signInWithEmailAndPassword(auth,EMAIL,p);return}
     faceMode=false;unlock();if(!syncOn){syncOn=true;startSync()}
-  }catch(e){$("lgE").textContent="Face ID سەرکەوتوو نەبوو، دووبارە دوگمەکە بکە"}
+  }catch(e){justLogged=false;try{localStorage.removeItem(FP)}catch(x){}showLogin();$("lgE").textContent="پاسۆردەکە بنووسە"}
 }
 function showFace(){showLogin();faceMode=true;$("lgS").textContent="بە Face ID بیکەرەوە";$("lp").closest("label").hidden=true;$("lgB").textContent="🔓 کردنەوە بە Face ID";$("lgPw").hidden=false;setTimeout(doFace,350)}
-$("lgPw").onclick=async()=>{faceMode=false;try{await signOut(auth)}catch(e){}showLogin()};
+$("lgPw").onclick=async()=>{faceMode=false;noFace=true;try{await signOut(auth)}catch(e){}showLogin()};
 onAuthStateChanged(auth,user=>{
   if(user){if(fidId()&&fidOK&&!justLogged){showFace()}else{justLogged=false;unlock();if(!syncOn){syncOn=true;startSync()}}}
-  else showLogin();
+  else{if(fidId()&&fidOK&&savedPw()&&!justLogged&&!noFace)showFace();else showLogin()}
 });
 </script>
 </body>
