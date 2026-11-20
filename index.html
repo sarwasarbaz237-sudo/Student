@@ -163,6 +163,43 @@ body.locked>*:not(#lg){display:none!important}
 .chip span{font-size:14px;opacity:.9}
 .chip:active{transform:scale(.97)}
 .chip-date{direction:ltr;font-variant-numeric:tabular-nums;letter-spacing:.5px;cursor:default;background:rgba(255,255,255,.14)}
+
+/* یەک باگراوندی ئاسایی بۆ ئەپەکە */
+body{background:var(--bg)!important;background-attachment:scroll!important}
+.ov{background:rgba(0,0,0,.6)}
+/* فۆرمی چوونەژوورەوەی جوانتر */
+.lg{background:linear-gradient(165deg,var(--hd1) 0%,var(--hd2) 100%)!important}
+.lg::before,.lg::after{display:none!important}
+@keyframes up{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}
+.lgc{max-width:400px;padding:30px 24px 24px!important;border-radius:34px!important;background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,.04)),rgba(8,12,28,.55)!important;backdrop-filter:blur(26px) saturate(140%)!important;-webkit-backdrop-filter:blur(26px) saturate(140%)!important;border:1px solid rgba(255,255,255,.22)!important;box-shadow:0 40px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.25)!important;animation:up .6s cubic-bezier(.2,.8,.2,1) both}
+.lgc .logo{width:68px;height:68px;font-size:32px;border-radius:22px;margin:0 auto 14px;background:linear-gradient(145deg,rgba(255,255,255,.38),rgba(255,255,255,.08));box-shadow:0 10px 26px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.3)}
+.lgt{font-size:58px;font-weight:800;letter-spacing:3px;background:linear-gradient(180deg,#fff,rgba(255,255,255,.7));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;text-shadow:none}
+.lgd{color:var(--gl);margin:2px 0 20px;opacity:.95}
+.lgc h2{font-size:20px;color:#fff}
+.lgc p{color:rgba(255,255,255,.7)}
+.lgc label{color:rgba(255,255,255,.75);font-weight:600}
+.lgc input{background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:14px;color:#fff;transition:.2s}
+.lgc input:focus{outline:0;border-color:var(--gl);box-shadow:0 0 0 4px color-mix(in srgb,var(--gl) 28%,transparent)}
+.pw button{border-radius:16px;width:54px;background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.18)}
+.lgc .add{height:52px;font-size:16px;border-radius:16px;background:linear-gradient(135deg,var(--gl),var(--g));color:#07101f;box-shadow:0 10px 24px rgba(0,0,0,.35);transition:transform .15s}
+.lgc .add:active{transform:scale(.98)}
+.lgc .add:disabled{opacity:.6}
+.lgc p.note{color:rgba(255,255,255,.5)}
+/* هەردوو باگراوند بکرا بە یەک بەش */
+body{background:linear-gradient(180deg,var(--hd2) 0,color-mix(in srgb,var(--hd2) 45%,var(--bg)) 190px,var(--bg) 420px) no-repeat,var(--bg)!important;background-attachment:scroll!important}
+header{background:none!important;border-radius:0!important;box-shadow:none!important}
+/* فۆرمی چوونەژوورەوە: یەک بەش، بێ کارتی جیا */
+.lg{background:linear-gradient(180deg,var(--hd1) 0%,var(--hd2) 100%)!important}
+.lgc{background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;max-width:420px;padding:0 8px!important;border-radius:0!important}
+.lgc .logo{width:84px;height:84px;font-size:42px;border-radius:26px;background:#fff!important;color:var(--hd2)!important;box-shadow:0 10px 26px rgba(0,0,0,.3)!important;margin:0 auto 14px}
+.lgt{font-size:66px;background:none!important;-webkit-text-fill-color:#fff!important;color:#fff!important}
+.lgd{color:rgba(255,255,255,.65)!important;font-size:19px;margin:4px 0 22px}
+.lgc input{background:rgba(5,10,25,.85)!important;border:1px solid rgba(255,255,255,.1)!important;padding:18px 14px}
+.pw button{background:rgba(5,10,25,.85)!important}
+.lgy{text-align:center;color:rgba(255,255,255,.75);font-weight:700;font-size:15px;margin:2px 0 14px}.lgy:empty{display:none}
+.lgk{text-align:center;color:#fff;font-weight:800;font-size:17px;line-height:1.6;margin:0 0 6px;opacity:.95}
+.lgc .logo{display:none!important}
+.logo{display:none!important}
 </style>
 </head>
 <body class="locked">
@@ -268,11 +305,15 @@ body.locked>*:not(#lg){display:none!important}
 <section id="rep" hidden></section>
 
 <div class="ov" id="ov" hidden><div class="sheet"><h2 id="sh"></h2><div id="fd"></div><div class="r2"><button class="pri" id="sv">پاشەکەوتکردن</button><button id="cn">پاشگەزبوونەوە</button></div><button class="dng" id="dl" hidden></button></div></div>
+<div class="ov" id="bov" hidden><div class="sheet"><h2>ناوی قوتابخانە و ساڵی خوێندن</h2>
+<label>ناوی قوتابخانە (لە فۆرمی چوونەژوورەوە دیار دەبێت)<input id="bn" type="text" autocomplete="off" placeholder="بۆ نموونە: قوتابخانەی ..."></label>
+<label>ساڵی خوێندن<input id="by" type="text" autocomplete="off" placeholder="2026-2027"></label>
+<div class="r2"><button class="pri" id="bs">پاشەکەوتکردن</button><button id="bc">پاشگەزبوونەوە</button></div></div></div>
 <div class="lg" id="lg">
   <div class="lgc">
     <div class="logo">ق</div>
-    <div class="lgt" id="lgClk">--:--</div><div class="lgd" id="lgDt"></div>
-    <h2>تۆماری پارەدانی مانگانەی قوتابیان</h2><p id="lgS"></p>
+    <div class="lgk">سیستەمی بەڕێوەبردنی هاتووچۆی قوتابیان</div><div class="lgt" id="lgClk">--:--</div><div class="lgd" id="lgDt"></div>
+    <h2>تۆماری پارەدانی مانگانەی قوتابیان</h2><div class="lgy" id="lgY"></div><p id="lgS"></p>
     <label>ناو<input id="lu" type="text" autocomplete="username"></label>
     <label>پاسۆرد<div class="pw"><input id="lp" type="password" autocomplete="current-password"><button type="button" data-sp="1" aria-label="پیشاندانی پاسۆرد">👁</button></div></label>
     <div class="err" id="lgE"></div>
@@ -315,7 +356,7 @@ function pushState(){
   const data=JSON.parse(JSON.stringify(S));
   setDoc(stateRef,data).catch(()=>toast("پاشەکەوت نەکرا"));
 }
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushState();};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushState();syncBrand();};
 if(!S.grades)S.grades=[10,11,12];
 const gradesList=()=>[...S.grades].sort((a,b)=>a-b);
 if(!S.year)S.year="2026-2027";
@@ -445,7 +486,16 @@ function sheet(title,fields,ok,del){
   };
 }
 $("cn").onclick=()=>$("ov").hidden=true;
-$("yrChip").onclick=()=>{const v=(prompt("ساڵی خوێندن:",S.year||"")||"").trim();if(!v)return;S.year=v;save();render();toast("✓ ساڵی خوێندن گۆڕدرا")};
+const BK="qutabi_brand";
+function applyBrand(){let b={};try{b=JSON.parse(localStorage.getItem(BK))||{}}catch(e){}
+  const h=document.querySelector("#lg h2");if(h)h.textContent=b.name||"تۆماری پارەدانی مانگانەی قوتابیان";
+  const y=$("lgY");if(y)y.textContent=b.year?"ساڵی خوێندن "+b.year:"";
+  const sb=document.querySelector("header .sub");if(sb)sb.textContent=b.name||"پۆلی 10 · 11 · 12";}
+function syncBrand(){try{localStorage.setItem(BK,JSON.stringify({name:S.brand||"",year:S.year||""}))}catch(e){}applyBrand()}
+applyBrand();
+$("yrChip").onclick=()=>{$("bn").value=S.brand||"";$("by").value=S.year||"";$("bov").hidden=false;setTimeout(()=>$("bn").focus(),50)};
+$("bc").onclick=()=>{$("bov").hidden=true};
+$("bs").onclick=()=>{const y=$("by").value.trim();if(!y){toast("ساڵی خوێندن بنووسە");return}S.year=y;S.brand=$("bn").value.trim();save();render();$("bov").hidden=true;toast("✓ پاشەکەوت کرا")};
 $("ry").onchange=()=>{const v=$("ry").value.trim();if(!v){toast("ساڵی خوێندن بنووسە");$("ry").value=S.year||"";return}S.year=v;save();render();toast("✓ ساڵی خوێندن پاشەکەوت کرا")};
 async function copyText(t){
   try{await navigator.clipboard.writeText(t);toast("✓ کۆپی کرا");$("txt").hidden=true}
@@ -602,7 +652,7 @@ function startSync(){
     else return;
     if(!S.grades)S.grades=[10,11,12];
     if(!S.year)S.year="2026-2027";
-    render();
+    syncBrand();render();
     try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
   },()=>toast("هاوکاتکردن کار ناکات"));
 }
