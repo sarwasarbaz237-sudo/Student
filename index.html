@@ -394,7 +394,6 @@ function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");cle
 
 function debts(){
   const a=[];
-  S.students.forEach(s=>{for(let m=s.start;m<=cur;m++)if(!S.pay[s.id+"_"+m])a.push({k:"m",s,m,amt:s.fee})});
   S.trips.forEach(t=>{if(!t.paid)a.push({k:"t",t,amt:t.fare})});
   return a;
 }
@@ -468,7 +467,7 @@ function renderRep(){
   const A=debts(),mc=sum(Object.keys(S.pay),k=>{const s=S.students.find(x=>x.id==k.split("_")[0]);return s?s.fee:0}),tc=sum(S.trips.filter(t=>t.paid),t=>t.fare),ex=sum(S.exp,e=>e.amt);
   $("rep").innerHTML=`<button class="add w" data-pr="rep">🖨 چاپکردنی ڕاپۆرت</button><div class="grid">${box(F(mc),"مانگانەی وەرگیراو","ok")}${box(F(tc),"گەشتی وەرگیراو","ok")}${box(F(ex),"کۆی سەرف")}${box(F(mc+tc-ex),"پوختە")}</div>
   <div class="card"><h3>6 مانگی ڕابردوو (د.ع)</h3>${tbl(["مانگ","داهات","سەرف","پوختە"],months6().map(m=>[mname(m),N(inc(m)),N(spent(m)),N(inc(m)-spent(m))]))}</div>
-  <div class="card" style="margin-bottom:24px"><h3>بەپێی پۆل (د.ع)</h3>${tbl(["پۆل","قوتابی","وەرگیراو","قەرز"],gradesList().map(g=>{const l=S.students.filter(s=>s.grade===g);return [D(g),D(l.length),N(sum(l,s=>Object.keys(S.pay).filter(k=>k.split("_")[0]==s.id).length*s.fee)),N(sum(A.filter(x=>x.k==="m"&&x.s.grade===g),x=>x.amt))]}))}</div>`;
+  <div class="card" style="margin-bottom:24px"><h3>بەپێی پۆل (د.ع)</h3>${tbl(["پۆل","قوتابی","وەرگیراو"],gradesList().map(g=>{const l=S.students.filter(s=>s.grade===g);return [D(g),D(l.length),N(sum(l,s=>Object.keys(S.pay).filter(k=>k.split("_")[0]==s.id).length*s.fee))] }))}</div>`;
 }
 function fillSeg(id,sel){
   const g=gradesList(),cur=document.querySelector("#"+id+" .on"),prev=cur?gv(cur.dataset.v):null;
@@ -616,9 +615,9 @@ function renderStu(){
     const owed=s.start<=cur?Array.from({length:cur-s.start+1},(_,k)=>s.start+k).filter(m=>!S.pay[s.id+"_"+m]).length:0;
     debtSum+=owed*s.fee;feeSum+=s.fee;
     const th=s.start>cur?"—":(S.pay[s.id+"_"+cur]?'<span style="color:var(--ok,#2e9e82);font-weight:700">✓ دراوە</span>':'<span style="color:var(--bad,#e0527a);font-weight:700">نەدراوە</span>');
-    return `<tr><td>${D(i+1)}</td><td class="nm2"><b>${esc(s.name)}</b></td><td>${esc(s.school||"—")}</td><td>${D(s.grade)}</td><td>${N(s.fee)}</td><td>${mname(s.start)}</td><td>${D(cnt[s.id]||0)}</td><td>${D(owed)}</td><td>${owed?N(owed*s.fee):"—"}</td><td>${th}</td><td>${last[s.id]?shownAt(last[s.id]):"—"}</td><td><button class="ed" data-e="${s.id}">✎ دەستکاری</button></td></tr>`}).join("");
-  $("sth").textContent="قوتابیان ("+D(L.length)+") · کۆی کرێی مانگانە "+F(feeSum)+" · کۆی قەرز "+F(debtSum);
-  $("stt").innerHTML=`<tr><th>ژ</th><th>ناوی قوتابی</th><th>قوتابخانە</th><th>پۆل</th><th>کرێی مانگانە (د.ع)</th><th>مانگی دەستپێک</th><th>مانگی دراو</th><th>مانگی قەرز</th><th>کۆی قەرز (د.ع)</th><th>ئەم مانگە</th><th>دوایین پارەدان</th><th>دەستکاری</th></tr>`+(rows||`<tr><td colspan="12" class="empty">هیچ قوتابییەک نەدۆزرایەوە</td></tr>`);
+    return `<tr><td>${D(i+1)}</td><td class="nm2"><b>${esc(s.name)}</b></td><td>${esc(s.school||"—")}</td><td>${D(s.grade)}</td><td>${N(s.fee)}</td><td>${mname(s.start)}</td><td>${D(cnt[s.id]||0)}</td><td>${th}</td><td>${last[s.id]?shownAt(last[s.id]):"—"}</td><td><button class="ed" data-e="${s.id}">✎ دەستکاری</button></td></tr>`}).join("");
+  $("sth").textContent="قوتابیان ("+D(L.length)+") · کۆی کرێی مانگانە "+F(feeSum);
+  $("stt").innerHTML=`<tr><th>ژ</th><th>ناوی قوتابی</th><th>قوتابخانە</th><th>پۆل</th><th>کرێی مانگانە (د.ع)</th><th>مانگی دەستپێک</th><th>مانگی دراو</th><th>ئەم مانگە</th><th>دوایین پارەدان</th><th>دەستکاری</th></tr>`+(rows||`<tr><td colspan="10" class="empty">هیچ قوتابییەک نەدۆزرایەوە</td></tr>`);
 }
 $("stq").addEventListener("input",renderStu);
 $("stg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;sgf=gv(b.dataset.v);renderStu()});
