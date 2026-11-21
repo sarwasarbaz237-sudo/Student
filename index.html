@@ -201,6 +201,7 @@ header{background:none!important;border-radius:0!important;box-shadow:none!impor
 .lgc .logo{display:none!important}
 .logo{display:none!important}
 .lg.wait #lgS,.lg.wait label,.lg.wait .err,.lg.wait .add,.lg.wait .note{visibility:hidden}
+#yrChip{display:none!important}
 </style>
 </head>
 <body class="locked">
@@ -242,7 +243,7 @@ header{background:none!important;border-radius:0!important;box-shadow:none!impor
   </div>
   <div class="card">
     <h3>پۆلەکان</h3>
-    <div class="row"><input id="ng" type="number" inputmode="numeric" placeholder="ژمارەی پۆلی نوێ" style="margin:0;flex:1"><button class="add" id="addG">＋ زیادکردن</button></div>
+    <div class="row"><input id="ng" type="text" inputmode="text" autocomplete="off" placeholder="پۆلی نوێ، بۆ نموونە: 10 یان 10،11" style="margin:0;flex:1"><button class="add" id="addG">＋ زیادکردن</button></div>
   </div>
   <div class="card">
     <h3>سڕینەوەی پۆل (بە هەموو قوتابی و پارەدانەکانییەوە)</h3>
@@ -383,7 +384,9 @@ function pushState(){
 }
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushState();syncBrand();};
 if(!S.grades)S.grades=[10,11,12];
-const gradesList=()=>[...S.grades].sort((a,b)=>a-b);
+const gv=v=>/^\d+$/.test(String(v))?+v:v;
+const gn=x=>isNaN(+x)?1e9:+x;
+const gradesList=()=>[...S.grades].sort((a,b)=>gn(a)-gn(b)||String(a).localeCompare(String(b)));
 if(!S.year)S.year="2026-2027";
 let vm=cur,gf=0;
 
@@ -408,7 +411,7 @@ const tbl=(h,r)=>`<div class="tw"><table class="tbl"><tr>${h.map(x=>`<th>${x}</t
 
 function renderP(){
   $("dt").textContent="مانگی "+mname(vm)+(vm===cur?" (ئێستا)":"");
-  document.querySelectorAll("#gf button").forEach(x=>x.classList.toggle("on",+x.dataset.g===gf));
+  document.querySelectorAll("#gf button").forEach(x=>x.classList.toggle("on",gv(x.dataset.g)===gf));
   const all=S.students.filter(s=>s.start<=vm),n=all.filter(s=>S.pay[s.id+"_"+vm]).length;
   $("pill").textContent=D(n)+" لە "+D(all.length)+" دراوە";
   $("fill").style.width=(all.length?n/all.length*100:0)+"%";
@@ -427,7 +430,7 @@ function editS(id){
     {k:"grade",l:"پۆل",t:"seg",o:gradesList().map(g=>[g,String(g)]),v:s.grade},
     {k:"fee",l:"کرێی مانگانە (د.ع)",t:"number",req:1,v:s.fee},
     {k:"start",l:"مانگی دەستپێک",t:"month",v:Math.floor(s.start/12)+"-"+P(s.start%12+1)}
-  ],v=>{s.name=v.name;s.school=v.school||"";s.grade=+v.grade;s.fee=+v.fee;if(v.start)s.start=MI(+v.start.slice(0,4),+v.start.slice(5,7));toast("✓ گۆڕانکارییەکان پاشەکەوت کران")},
+  ],v=>{s.name=v.name;s.school=v.school||"";s.grade=gv(v.grade);s.fee=+v.fee;if(v.start)s.start=MI(+v.start.slice(0,4),+v.start.slice(5,7));toast("✓ گۆڕانکارییەکان پاشەکەوت کران")},
   ()=>{S.students=S.students.filter(x=>x.id!=id);Object.keys(S.pay).forEach(k=>{if(k.split("_")[0]==id)delete S.pay[k]});toast("قوتابییەکە سڕایەوە")});
 }
 function renderR(){
@@ -468,7 +471,7 @@ function renderRep(){
   <div class="card" style="margin-bottom:24px"><h3>بەپێی پۆل (د.ع)</h3>${tbl(["پۆل","قوتابی","وەرگیراو","قەرز"],gradesList().map(g=>{const l=S.students.filter(s=>s.grade===g);return [D(g),D(l.length),N(sum(l,s=>Object.keys(S.pay).filter(k=>k.split("_")[0]==s.id).length*s.fee)),N(sum(A.filter(x=>x.k==="m"&&x.s.grade===g),x=>x.amt))]}))}</div>`;
 }
 function fillSeg(id,sel){
-  const g=gradesList(),cur=document.querySelector("#"+id+" .on"),prev=cur?+cur.dataset.v:null;
+  const g=gradesList(),cur=document.querySelector("#"+id+" .on"),prev=cur?gv(cur.dataset.v):null;
   const v=sel!=null?sel:(g.includes(prev)?prev:g[0]);
   $(id).innerHTML=g.map(x=>`<button type="button" data-v="${x}" class="${x===v?"on":""}">${x}</button>`).join("");
 }
@@ -547,15 +550,19 @@ $("rl").onclick=()=>{
   arm($("rl"),()=>{S=o;if(!S.grades)S.grades=[10,11,12];save();render();$("rs").value="";toast("✓ داتا بارکرایەوە")});
 };
 $("addG").onclick=()=>{
-  const g=Math.round(+$("ng").value);
-  if(!g||g<1||g>99){toast("ژمارەیەکی دروست بنووسە (١ بۆ ٩٩)");return}
-  if(S.grades.includes(g)){toast("پۆلی "+g+" پێشتر هەیە");return}
+  let raw=$("ng").value.replace(/[٠-٩]/g,d=>d.charCodeAt(0)-1632).replace(/[۰-۹]/g,d=>d.charCodeAt(0)-1776);
+  raw=raw.replace(/["'<>&]/g,"").replace(/\s*[,،;؛]+\s*/g,"،").replace(/\s+/g," ").trim();
+  if(!raw){toast("پۆلێک بنووسە، بۆ نموونە 10 یان 10،11");return}
+  if(raw.length>20){toast("ناوی پۆل زۆر درێژە");return}
+  const g=gv(raw);
+  if(g===0){toast("ژمارەیەکی دروست بنووسە");return}
+  if(S.grades.some(x=>String(x)===String(g))){toast("پۆلی "+g+" پێشتر هەیە");return}
   S.grades.push(g);$("ng").value="";save();render();toast("✓ پۆلی "+g+" زیادکرا");
 };
 $("delG").onclick=()=>{
   const b=$("dg").querySelector(".on");
   if(!b){toast("هیچ پۆلێک نییە");return}
-  const g=+b.dataset.v,n=S.students.filter(x=>x.grade===g).length;
+  const g=gv(b.dataset.v),n=S.students.filter(x=>x.grade===g).length;
   arm($("delG"),()=>{
     const ids=S.students.filter(x=>x.grade===g).map(x=>String(x.id));
     S.students=S.students.filter(x=>x.grade!==g);
@@ -571,7 +578,7 @@ $("wipe").onclick=()=>arm($("wipe"),()=>{S.students=[];S.pay={};S.trips=[];S.exp
 $("delAll").onclick=()=>{if(!S.students.length){toast("هیچ قوتابییەک نییە");return}arm($("delAll"),()=>{S.students=[];S.pay={};save();render();toast("هەموو قوتابییەکان سڕانەوە")})};
 
 $("addS").onclick=()=>{
-  const name=$("rn").value.trim(),fee=+$("rf").value,g=+$("rg").querySelector(".on").dataset.v,ms=$("rs").value;
+  const name=$("rn").value.trim(),fee=+$("rf").value,g=gv($("rg").querySelector(".on").dataset.v),ms=$("rs").value;
   if(!name||!fee){toast("تکایە ناو و کرێی مانگانە پڕبکەرەوە");return}
   S.students.push({id:++S.seq,name,school:$("rsch").value.trim(),grade:g,fee,start:ms?MI(+ms.slice(0,4),+ms.slice(5,7)):cur});
   $("rn").value="";$("rsch").value=S.brand||"";delete $("rsch").dataset.t;save();render();toast("✓ تۆمارکرا · چووە ناو لیستی پارە وەرگرتن");
@@ -614,7 +621,7 @@ function renderStu(){
   $("stt").innerHTML=`<tr><th>ژ</th><th>ناوی قوتابی</th><th>قوتابخانە</th><th>پۆل</th><th>کرێی مانگانە (د.ع)</th><th>مانگی دەستپێک</th><th>مانگی دراو</th><th>مانگی قەرز</th><th>کۆی قەرز (د.ع)</th><th>ئەم مانگە</th><th>دوایین پارەدان</th><th>دەستکاری</th></tr>`+(rows||`<tr><td colspan="12" class="empty">هیچ قوتابییەک نەدۆزرایەوە</td></tr>`);
 }
 $("stq").addEventListener("input",renderStu);
-$("stg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;sgf=+b.dataset.v;renderStu()});
+$("stg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;sgf=gv(b.dataset.v);renderStu()});
 function go(x){
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.tab===x));
   ["dash","reg","pay","trip","debt","exp","rep","stu","sys"].forEach(id=>$(id).hidden=id!==x);
@@ -630,7 +637,7 @@ document.body.addEventListener("click",e=>{
   if(d.th){setTheme(d.th);return}
   if(d.sp){const i=$("lp");i.type=i.type==="password"?"text":"password";return}
   if(d.lo){signOut(auth);return}
-  if(d.g!==undefined){gf=+d.g;render();return}
+  if(d.g!==undefined){gf=gv(d.g);render();return}
   if(d.m){togM(+d.m,+d.mm);return}
   if(d.dm){togM(+d.dm,+d.mm);return}
   if(d.tg){togT(+d.tg);return}
