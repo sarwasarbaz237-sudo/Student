@@ -200,6 +200,7 @@ header{background:none!important;border-radius:0!important;box-shadow:none!impor
 .lgk{text-align:center;color:#fff;font-weight:800;font-size:17px;line-height:1.6;margin:0 0 6px;opacity:.95}
 .lgc .logo{display:none!important}
 .logo{display:none!important}
+.lg.wait #lgS,.lg.wait label,.lg.wait .err,.lg.wait .add,.lg.wait .note{visibility:hidden}
 </style>
 </head>
 <body class="locked">
@@ -331,15 +332,15 @@ header{background:none!important;border-radius:0!important;box-shadow:none!impor
 <label>ناوی قوتابخانە (لە فۆرمی چوونەژوورەوە دیار دەبێت)<input id="bn" type="text" autocomplete="off" placeholder="بۆ نموونە: قوتابخانەی ..."></label>
 <label>ساڵی خوێندن<input id="by" type="text" autocomplete="off" placeholder="2026-2027"></label>
 <div class="r2"><button class="pri" id="bs">پاشەکەوتکردن</button><button id="bc">پاشگەزبوونەوە</button></div></div></div>
-<div class="lg" id="lg">
+<div class="lg wait" id="lg">
   <div class="lgc">
     <div class="logo">ق</div>
     <div class="lgk">سیستەمی بەڕێوەبردنی هاتووچۆی قوتابیان</div><div class="lgt" id="lgClk">--:--</div><div class="lgd" id="lgDt"></div>
     <h2>تۆماری پارەدانی مانگانەی قوتابیان</h2><div class="lgy" id="lgY"></div><p id="lgS"></p>
-    <label>ناو<input id="lu" type="text" autocomplete="username"></label>
+    <label hidden>ناو<input id="lu" type="text" autocomplete="username"></label>
     <label>پاسۆرد<div class="pw"><input id="lp" type="password" autocomplete="current-password"><button type="button" data-sp="1" aria-label="پیشاندانی پاسۆرد">👁</button></div></label>
     <div class="err" id="lgE"></div>
-    <button class="add" id="lgB" style="width:100%"></button>
+    <button class="add" id="lgB" style="width:100%">چوونەژوورەوە</button>
     <button class="lk" id="lgPw" hidden>بە پاسۆرد بچۆ ژوورەوە</button>
     <button class="lk" id="lgF" hidden>پاسۆردم لەبیر چووە (هەموو داتا دەسڕێتەوە)</button>
     <p class="note">ئەم داخلبوونە تەنها لەسەر ئەم ئامێرە و وێبگەڕەیە</p>
@@ -373,7 +374,7 @@ const shownAt=s=>{const[a,b,c]=s.slice(0,10).split("-");return `<bdi dir="ltr">$
 const mname=m=>D(P(m%12+1))+" / "+D(Math.floor(m/12));
 const tmo=s=>MI(+s.slice(0,4),+s.slice(5,7));
 
-let faceMode=false,justLogged=false,noFace=false,sgf=0;let KEY="qutabi_pay_v1";let S=null;
+let faceMode=false,justLogged=false,noFace=false,faceBusy=false,sgf=0;let KEY="qutabi_pay_v1";let S=null;
 
 if(!S)S={seq:0,students:[],pay:{},trips:[],exp:[],grades:[10,11,12],year:"2026-2027"};
 function pushState(){
@@ -660,6 +661,7 @@ function tickLg(){
 }
 tickLg();setInterval(()=>{if(!$("lg").hidden)tickLg()},1000);
 function showLogin(){
+  $("lg").classList.remove("wait");
   faceMode=false;$("lgPw").hidden=true;
   document.body.classList.add("locked");$("lg").hidden=false;
   $("lgS").textContent="پاسۆردەکەت بنووسە بۆ چوونەژوورەوە";
@@ -728,7 +730,8 @@ $("fidB").onclick=async()=>{
   finally{justLogged=false}
 };
 renderFid();
-async function doFace(){
+async function doFace(){if(faceBusy)return;faceBusy=true;try{await doFace0()}finally{faceBusy=false}}
+async function doFace0(){
   try{
     await navigator.credentials.get({publicKey:{challenge:rnd(32),allowCredentials:[{type:"public-key",id:unb64(fidId())}],userVerification:"required",timeout:60000}});
   }catch(e){$("lgE").textContent="Face ID سەرکەوتوو نەبوو، دووبارە دوگمەکە بکە";return}
@@ -737,16 +740,20 @@ async function doFace(){
     faceMode=false;unlock();if(!syncOn){syncOn=true;startSync()}
   }catch(e){justLogged=false;try{localStorage.removeItem(FP)}catch(x){}showLogin();$("lgE").textContent="پاسۆردەکە بنووسە"}
 }
-function showFace(){showLogin();faceMode=true;$("lgS").textContent="بە Face ID بیکەرەوە";$("lp").closest("label").hidden=true;$("lgB").textContent="🔓 کردنەوە بە Face ID";$("lgPw").hidden=false;setTimeout(doFace,350)}
+function showFace(){showLogin();faceMode=true;$("lgS").textContent="بە Face ID بیکەرەوە · دەست بدە لە هەر شوێنێک";$("lp").closest("label").hidden=true;$("lgB").textContent="🔓 کردنەوە بە Face ID";$("lgPw").hidden=false;setTimeout(doFace,350)}
 let fidBusy=false;
-$("lp").addEventListener("click",async()=>{
-  if(faceMode||fidBusy||!fidOK||!fidId()||!savedPw()||$("lp").value)return;
+async function faceFill(){
+  if(faceMode||noFace||fidBusy||!fidOK||!fidId()||!savedPw()||$("lp").value||$("lg").hidden)return;
   fidBusy=true;
   try{
     await navigator.credentials.get({publicKey:{challenge:rnd(32),allowCredentials:[{type:"public-key",id:unb64(fidId())}],userVerification:"required",timeout:60000}});
     $("lp").value=savedPw();$("lp").blur();$("lgB").click();
   }catch(e){}
   finally{fidBusy=false}
+}
+$("lg").addEventListener("click",e=>{
+  if(e.target.closest("button"))return;
+  if(faceMode)doFace();else faceFill();
 });
 $("lgPw").onclick=async()=>{faceMode=false;noFace=true;try{await signOut(auth)}catch(e){}showLogin()};
 onAuthStateChanged(auth,user=>{
