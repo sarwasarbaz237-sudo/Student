@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="dark">
-<script>try{var t=localStorage.getItem("qutabi_theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<meta name="color-scheme" content="dark light">
+<script>try{var t=localStorage.getItem("qutabi_theme");if(t)document.documentElement.dataset.theme=t}catch(e){}
+try{var mq=matchMedia("(prefers-color-scheme: light)");var fm=function(){document.documentElement.dataset.mode=mq.matches?"light":"dark"};fm();if(mq.addEventListener)mq.addEventListener("change",fm);else mq.addListener(fm)}catch(e){}</script>
 <title>تۆماری پارەدانی قوتابیان</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -209,6 +210,19 @@ header{background:none!important;border-radius:0!important;box-shadow:none!impor
 body.sub header,body.sub .tabs{display:none!important}
 body.sub section{min-height:calc(100vh - 70px)}
 mark{background:var(--g);color:#fff;border-radius:5px;padding:0 2px}
+/* ڕێکخستنی ڕووناک/تاریک خۆکارانە بەپێی مۆبایل */
+html[data-mode=light]{color-scheme:light;--bg:#f1f5fb;--card:#ffffff;--in:#e8eef7;--line:#d5deea;--txt:#0f1b2d;--mut:#5b6e86;--warn:#b7791f;--bad:#d64545}
+html[data-mode=light] .pill{background:#fff1d6}
+html[data-mode=light] .bar{background:#dbe3ee}
+html[data-mode=light] .due,html[data-mode=light] .c.no{background:#fff1d6}
+html[data-mode=light] .r2 button{background:#e5ebf3;color:var(--txt)}
+html[data-mode=light] .r2 .pri{background:var(--gl);color:#0b2a1b}
+html[data-mode=light] .tbl tr:nth-child(even) td{background:rgba(15,27,45,.04)}
+html[data-mode=light] .nav,html[data-mode=light] .card,html[data-mode=light] .list,html[data-mode=light] .box{border:1px solid rgba(15,27,45,.08);box-shadow:0 6px 18px rgba(15,27,45,.08)}
+html[data-mode=light] .tabs{box-shadow:0 6px 16px rgba(15,27,45,.15)}
+html[data-mode=light] #toast{background:#1b2a26;color:#fff}
+html[data-mode=light] .ov{background:rgba(15,27,45,.45)}
+html[data-mode=light] .nw{color:#b45309}
 </style>
 </head>
 <body class="locked">
