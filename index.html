@@ -208,6 +208,7 @@ header{background:none!important;border-radius:0!important;box-shadow:none!impor
 .sb{border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;border-radius:14px;padding:9px 14px;font:inherit;font-weight:700;cursor:pointer}
 body.sub header,body.sub .tabs{display:none!important}
 body.sub section{min-height:calc(100vh - 70px)}
+mark{background:var(--g);color:#fff;border-radius:5px;padding:0 2px}
 </style>
 </head>
 <body class="locked">
@@ -424,11 +425,14 @@ function renderP(){
   $("pill").textContent=D(n)+" لە "+D(all.length)+" دراوە";
   $("fill").style.width=(all.length?n/all.length*100:0)+"%";
   $("prPay").hidden=!(all.length&&n===all.length);
-  const q=$("q").value.trim().toLowerCase();
-  const L=all.filter(s=>(!gf||s.grade===gf)&&(!q||s.name.toLowerCase().includes(q)));
+  const nzq=t=>String(t||"").replace(/ي/g,"ی").replace(/ك/g,"ک").replace(/\s+/g," ").trim().toLowerCase();
+  const q=nzq($("q").value);
+  let L=all.filter(s=>!gf||s.grade===gf);
+  if(q){let m=L.filter(s=>nzq(s.name).startsWith(q));if(!m.length)m=L.filter(s=>nzq(s.name).split(" ").some(w=>w.startsWith(q)));L=m}
+  const hl=s=>(q&&nzq(s.name).startsWith(q))?`<mark>${esc(s.name.slice(0,q.length))}</mark>${esc(s.name.slice(q.length))}`:esc(s.name);
   const dt=p=>p?[p.slice(0,10).split("-").reverse().join("/"),t12(p.slice(11))]:["—","—"];
   $("pl").innerHTML=`<tr><th class="c1">ژ</th><th class="c2">ناوی قوتابی</th><th>پۆل</th><th>کرێی مانگانە (د.ع)</th><th>دۆخی پارە</th><th>بەروار</th><th>کاتژمێر</th></tr>`+
-   (L.length?L.map((s,i)=>{const p=S.pay[s.id+"_"+vm],[d,t]=dt(p);return `<tr><td class="c1">${D(i+1)}</td><td class="c2"><b>${esc(s.name)}</b></td><td>${D(s.grade)}</td><td>${N(s.fee)}</td><td>${sb(p,`data-m="${s.id}" data-mm="${vm}"`)}</td><td dir="ltr">${d}</td><td dir="ltr">${t}</td></tr>`}).join(""):`<tr><td colspan="7" class="empty">هیچ قوتابییەک نەدۆزرایەوە</td></tr>`);
+   (L.length?L.map((s,i)=>{const p=S.pay[s.id+"_"+vm],[d,t]=dt(p);return `<tr><td class="c1">${D(i+1)}</td><td class="c2"><b>${hl(s)}</b></td><td>${D(s.grade)}</td><td>${N(s.fee)}</td><td>${sb(p,`data-m="${s.id}" data-mm="${vm}"`)}</td><td dir="ltr">${d}</td><td dir="ltr">${t}</td></tr>`}).join(""):`<tr><td colspan="7" class="empty">هیچ قوتابییەک نەدۆزرایەوە</td></tr>`);
 }
 function editS(id){
   const s=S.students.find(x=>x.id==id);
